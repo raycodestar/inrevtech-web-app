@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme - premium cool blue-gray surfaces */
+    --background: 210 30% 97%;
+    --foreground: 222 47% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 10%;
+    --primary: 199 89% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 93%;
+    --secondary-foreground: 222 47% 20%;
+    --muted: 210 20% 92%;
+    --muted-foreground: 220 14% 46%;
+    --accent: 199 89% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 42%;
+    --radius: 0.625rem;
+
+    /* Brand tokens */
+    --brand-azure: 199 89% 42%;
+    --brand-cyan: 188 95% 40%;
+    --brand-navy: 222 47% 10%;
+    --surface-raised: 0 0% 100%;
+    --surface-overlay: 0 0% 100%;
+    --brand-gradient-from: #0ea5e9;
+    --brand-gradient-to: #06b6d4;
+
+    /* Charts */
+    --chart-1: 199 89% 42%;
+    --chart-2: 188 95% 40%;
+    --chart-3: 222 47% 30%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    /* Dark theme - premium midnight navy / blue-black */
+    --background: 222 47% 4%;
+    --foreground: 210 40% 94%;
+    --card: 222 47% 7%;
+    --card-foreground: 210 40% 94%;
+    --popover: 222 47% 6%;
+    --popover-foreground: 210 40% 94%;
+    --primary: 199 89% 52%;
+    --primary-foreground: 222 47% 5%;
+    --secondary: 222 32% 12%;
+    --secondary-foreground: 210 40% 88%;
+    --muted: 222 32% 11%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 199 89% 52%;
+    --accent-foreground: 222 47% 5%;
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 32% 15%;
+    --input: 222 32% 15%;
+    --ring: 199 89% 52%;
+
+    /* Dark brand tokens */
+    --brand-azure: 199 89% 56%;
+    --brand-cyan: 188 95% 52%;
+    --brand-navy: 222 47% 4%;
+    --surface-raised: 222 47% 7%;
+    --surface-overlay: 222 47% 9%;
+    --brand-gradient-from: #38bdf8;
+    --brand-gradient-to: #22d3ee;
+
+    /* Charts */
+    --chart-1: 199 89% 52%;
+    --chart-2: 188 95% 52%;
+    --chart-3: 210 80% 70%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .brand-gradient {
+    background: linear-gradient(135deg, var(--brand-gradient-from), var(--brand-gradient-to));
+  }
+
+  .brand-gradient-text {
+    background: linear-gradient(135deg, var(--brand-gradient-from), var(--brand-gradient-to));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass-light {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+
+  .glass-dark {
+    background: rgba(6, 13, 27, 0.85);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+
+  .heading-display {
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.2),
+      0 0 80px hsl(var(--primary) / 0.08);
+  }
+
+  .glow-primary-strong {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4),
+      0 0 60px hsl(var(--primary) / 0.15);
+  }
+
+  .mesh-bg {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(at 27% 37%, hsl(var(--primary) / 0.08) 0px, transparent 50%),
+      radial-gradient(at 97% 21%, hsl(188 95% 40% / 0.06) 0px, transparent 50%),
+      radial-gradient(at 52% 99%, hsl(var(--primary) / 0.06) 0px, transparent 50%);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Selection */
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+/* 1. Container & Layout */
+.PhoneInput {
+  display: flex;
+  align-items: center;
+}
+
+/* 2. The Flag Section (Left Side) */
+.PhoneInputCountry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 12px;
+  background-color: hsl(var(--muted) / 0.5); /* Subtle background contrast */
+  border-right: 1px solid hsl(var(--border));
+  cursor: pointer;
+  transition: background 0.2s;
+  pointer-events: none; /* Let clicks pass through to the select element */
+}
+
+.PhoneInputCountry:hover {
+  background-color: hsl(var(--muted));
+}
+
+/* 3. The Flag Image (Bigger & Crisp) */
+.PhoneInputCountryIcon {
+  width: 32px !important; /* Increased size */
+  height: auto !important;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.1); /* Subtle border for light flags */
+}
+
+/* 4. The Bold Dropdown Icon */
+/* We create a custom bold chevron using a pseudo-element */
+.PhoneInputCountrySelectArrow {
+  margin-left: 8px;
+  width: 10px;
+  height: 10px;
+  border-style: solid;
+  border-width: 0 2.5px 2.5px 0 !important; /* Bold thickness */
+  transform: rotate(45deg);
+  opacity: 1 !important;
+  border-color: hsl(var(--primary)) !important; /* Bright primary color */
+  z-index: 2;
+  position: relative;
+}
+
+/* 5. The Hidden Select (Functionality) */
+.PhoneInputCountrySelect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 10; /* Higher z-index to ensure it's clickable */
+  opacity: 0; /* Keeps it invisible in the input field */
+  cursor: pointer;
+  appearance: none;
+  pointer-events: auto; /* Ensure it receives click events */
+}
+
+/* 6. The Dropdown List (The fix for visibility) */
+/* This ensures that when the native dropdown opens, the text is visible */
+.PhoneInputCountrySelect option {
+  font-size: 16px !important; /* Large and readable */
+  color: #000000 !important; /* Ensure black text for visibility */
+  background-color: #ffffff !important;
+  padding: 10px;
+}
+
+/* 7. The Phone Number Input */
+.PhoneInputInput {
+  flex: 1;
+  height: 100%;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 16px !important;
+  font-size: 1rem !important; /* Premium typing experience */
+  color: hsl(var(--foreground));
+  outline: none !important;
+}
+
+.PhoneInputInput::placeholder {
+  color: hsl(var(--muted-foreground));
+}
