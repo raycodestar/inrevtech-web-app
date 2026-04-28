@@ -142,7 +142,7 @@ export default function InsightsPage() {
       <section className="py-12 pb-24" id="guides">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rest.map((post, i) => (
+            {rest?.map((post, i) => (
               <motion.div
                 key={post._id}
                 initial={{ opacity: 0, y: 20 }}
@@ -151,7 +151,7 @@ export default function InsightsPage() {
                 transition={{ duration: 0.4, delay: i * 0.08 }}
               >
                 <Link
-                  href={`/insights/${post.slug.current}`}
+                  href={`/insights/${post.slug?.current}`}
                   className="group flex flex-col h-full rounded-2xl border border-border bg-card overflow-hidden hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
                 >
                   <div className="relative h-44 overflow-hidden bg-muted">
