@@ -6,4 +6,12 @@ import testimonial from './testimonial';
 import teamMember from './teamMember';
 import companyInfo from './companyInfo';
 
-export const schemaTypes = [post, author, service, project, testimonial, teamMember, companyInfo];
+export const schemaTypes = [
+  post, 
+  author, 
+  service, 
+  project, 
+  testimonial, 
+  teamMember, 
+  companyInfo
+];

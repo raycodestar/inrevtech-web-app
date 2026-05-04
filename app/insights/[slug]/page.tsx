@@ -1,23 +1,62 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Calendar, Share2 } from 'lucide-react';
-import { sanityFetch, postBySlugQuery } from '@/lib/sanity/client';
-import { Button } from '@/components/ui/button';
-import { GradientText } from '@/components/ui/GradientText';
+import { siteConfig } from '@/lib/constants';
+import { sanityFetch, postBySlugQuery, postSeoBySlugQuery, relatedPostsQuery } from '@/lib/sanity/client';
+import BlogPostContent from './BlogPostContent';
+
+export const revalidate = 300;
+
+interface PostSeo {
+  _id: string;
+  title: string;
+  slug: { current: string };
+  excerpt?: string;
+  category?: string;
+  tags?: string[];
+  publishedAt?: string;
+  _updatedAt?: string;
+  coverImage?: string;
+  coverImageAlt?: string;
+  mobileCoverImage?: string;
+  mobileCoverImageAlt?: string;
+  seo?: {
+    metaTitle?: string;
+    metaDesc?: string;
+    keywords?: string[];
+    shareImage?: string;
+    shareImageAlt?: string;
+  };
+  author?: {
+    name?: string;
+  };
+}
 
 interface Post {
   _id: string;
   title: string;
   slug: { current: string };
   excerpt: string;
+  _updatedAt?: string;
   body: any[];
   category: string;
   tags: string[];
   publishedAt: string;
   readingTime: number;
   coverImage: string;
+  coverImageAlt?: string;
+  mobileCoverImage?: string;
+  mobileCoverImageAlt?: string;
+  seo?: {
+    metaTitle?: string;
+    metaDesc?: string;
+    keywords?: string[];
+    shareImage?: string;
+    shareImageAlt?: string;
+  };
+  faqs?: {
+    question?: string;
+    answer?: string;
+  }[];
   author: {
     name: string;
     role: string;
@@ -26,158 +65,165 @@ interface Post {
   };
 }
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = await sanityFetch<Post>(postBySlugQuery, { slug: params.slug });
+interface RelatedPost {
+  _id: string;
+  title: string;
+  slug: { current: string };
+  excerpt: string;
+  category: string;
+  publishedAt: string;
+  readingTime: number;
+  coverImage: string;
+}
 
-  if (!post) {
+type BlogPostPageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+function getPostUrl(slug: string) {
+  return `${siteConfig.url}/insights/${slug}`;
+}
+
+function getSeoTitle(post: PostSeo) {
+  return post.seo?.metaTitle?.trim() || post.title;
+}
+
+function getSeoDescription(post: PostSeo) {
+  return post.seo?.metaDesc?.trim() || post.excerpt || siteConfig.description;
+}
+
+function getSeoImage(post: PostSeo) {
+  return post.seo?.shareImage || post.coverImage || siteConfig.ogImage;
+}
+
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await sanityFetch<PostSeo | null>(postSeoBySlugQuery, { slug });
+
+  if (!post || Array.isArray(post)) {
+    return {
+      title: `Insight Not Found | ${siteConfig.name}`,
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const title = getSeoTitle(post);
+  const description = getSeoDescription(post);
+  const image = getSeoImage(post);
+  const url = getPostUrl(post.slug?.current || slug);
+  const imageAlt = post.seo?.shareImageAlt || post.coverImageAlt || title;
+
+  return {
+    title,
+    description,
+    metadataBase: new URL(siteConfig.url),
+    keywords: post.seo?.keywords?.length ? post.seo.keywords : post.tags,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: siteConfig.name,
+      type: 'article',
+      publishedTime: post.publishedAt,
+      modifiedTime: post._updatedAt,
+      authors: post.author?.name ? [post.author.name] : undefined,
+      section: post.category,
+      tags: post.tags,
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: imageAlt,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [
+        {
+          url: image,
+          alt: imageAlt,
+        },
+      ],
+      creator: '@inrevtech',
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+  };
+}
+
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
+  const post = await sanityFetch<Post>(postBySlugQuery, { slug });
+
+  if (!post || Array.isArray(post)) {
     notFound();
   }
 
+  const relatedPosts = await sanityFetch<RelatedPost[]>(relatedPostsQuery, {
+    category: post.category,
+    currentId: post._id,
+  });
+
+  const seoPost: PostSeo = post;
+  const canonicalUrl = getPostUrl(post.slug?.current || slug);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': canonicalUrl,
+    },
+    headline: getSeoTitle(seoPost),
+    description: getSeoDescription(seoPost),
+    image: [getSeoImage(seoPost)],
+    author: {
+      '@type': 'Person',
+      name: post.author?.name || siteConfig.name,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: siteConfig.name,
+      logo: {
+        '@type': 'ImageObject',
+        url: siteConfig.ogImage,
+      },
+    },
+    datePublished: post.publishedAt,
+    dateModified: post._updatedAt || post.publishedAt,
+  };
+
   return (
-    <div className="min-h-screen">
-      <section className="relative py-24 sm:py-32">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href="/insights"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to insights
-          </Link>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 rounded-full px-3 py-1 mb-4">
-              {post.category}
-            </span>
-            <h1 className="text-4xl sm:text-5xl font-bold heading-display text-foreground mb-6 leading-tight">
-              {post.title}
-            </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              {post.excerpt}
-            </p>
-
-            <div className="flex items-center gap-6 text-sm text-muted-foreground mb-8">
-              <span className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                {post.readingTime} min read
-              </span>
-              <span className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                {new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4 mb-12 pb-8 border-b border-border">
-              <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted">
-                <Image
-                  src={post.author.avatar}
-                  alt={post.author.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
-                <p className="text-xs text-muted-foreground">{post.author.role}</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative h-64 sm:h-96 rounded-3xl overflow-hidden mb-12">
-            <Image
-              src={post.coverImage}
-              alt={post.title}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-
-          <motion.article
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="prose prose-lg max-w-none"
-          >
-            {/* Render the body content */}
-            {post.body.map((block: any, index: number) => {
-              if (block._type === 'block') {
-                return (
-                  <p key={index} className="text-base text-foreground leading-relaxed mb-6">
-                    {block.children?.map((child: any) => child.text).join('')}
-                  </p>
-                );
-              }
-              if (block._type === 'image') {
-                return (
-                  <div key={index} className="relative h-64 sm:h-80 rounded-2xl overflow-hidden my-8">
-                    <Image
-                      src={block.asset?.url}
-                      alt={block.alt || ''}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                );
-              }
-              return null;
-            })}
-          </motion.article>
-
-          <div className="flex items-center justify-between mt-12 pt-8 border-t border-border">
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag: string) => (
-                <span
-                  key={tag}
-                  className="text-xs font-medium px-3 py-1 rounded-full bg-muted text-muted-foreground"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-            <Button variant="outline" size="sm">
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 border-t border-border bg-card/50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold heading-display text-foreground mb-4">
-            Ready to start your project?
-          </h2>
-          <p className="text-base text-muted-foreground mb-8">
-            Let's discuss how we can help you achieve your goals.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link href="/get-a-quote">
-              <Button className="brand-gradient border-0 text-white hover:opacity-90">
-                Get a quote
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button variant="outline">
-                Contact us
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
+      <BlogPostContent post={post} relatedPosts={relatedPosts || []} />
+    </>
   );
 }
 
 export async function generateStaticParams() {
-  // This will be replaced with actual data fetching once Sanity is connected
   return [];
 }

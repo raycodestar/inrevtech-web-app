@@ -4,6 +4,7 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { Navbar } from '@/components/navigation/Navbar';
 import { BottomNav } from '@/components/navigation/BottomNav';
+import { ScrollProgressFab } from '@/components/navigation/ScrollProgressFab';
 import { Footer } from '@/components/layout/Footer';
 import { siteConfig } from '@/lib/constants';
 
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 pt-16 pb-16 lg:pb-0">
             {children}
           </main>
+          <ScrollProgressFab mode="service" />
           <Footer />
           <BottomNav />
         </ThemeProvider>

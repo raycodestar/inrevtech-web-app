@@ -33,7 +33,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
     <>
       <div
         className={cn(
-          'fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
+          'fixed inset-0 z-[65] bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
         onClick={onClose}
@@ -42,7 +42,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
 
       <div
         className={cn(
-          'fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-background border-l border-border shadow-2xl transition-transform duration-300 ease-in-out lg:hidden flex flex-col',
+          'fixed inset-y-0 right-0 z-[70] w-full max-w-sm bg-background border-l border-border shadow-2xl transition-transform duration-300 ease-in-out lg:hidden flex flex-col',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >

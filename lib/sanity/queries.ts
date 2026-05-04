@@ -56,6 +56,9 @@ export const latestInsightsQuery = `*[_type == "post"] | order(publishedAt desc)
   readingTime,
   featured,
   "coverImage": coverImage.asset->url,
+  "coverImageAlt": coalesce(coverImage.alt, coverImage.asset->altText),
+  "mobileCoverImage": mobileCoverImage.asset->url,
+  "mobileCoverImageAlt": coalesce(mobileCoverImage.alt, mobileCoverImage.asset->altText),
   "author": author->{
     name,
     role,
@@ -68,18 +71,82 @@ export const postBySlugQuery = `*[_type == "post" && slug.current == $slug][0] {
   title,
   slug,
   excerpt,
-  body,
+  _updatedAt,
+  body[]{
+    ...,
+    _type == "image" => {
+      ...,
+      "url": asset->url,
+      "alt": coalesce(alt, asset->altText)
+    }
+  },
   category,
   tags,
   publishedAt,
   readingTime,
+  seo{
+    metaTitle,
+    metaDesc,
+    keywords,
+    "shareImage": shareImage.asset->url,
+    "shareImageAlt": coalesce(shareImage.alt, shareImage.asset->altText)
+  },
+  faqs[]{
+    question,
+    answer
+  },
   "coverImage": coverImage.asset->url,
+  "coverImageAlt": coalesce(coverImage.alt, coverImage.asset->altText),
+  "mobileCoverImage": mobileCoverImage.asset->url,
+  "mobileCoverImageAlt": coalesce(mobileCoverImage.alt, mobileCoverImage.asset->altText),
   "author": author->{
     name,
     role,
     bio,
     "avatar": avatar.asset->url
   }
+}`;
+
+export const postSeoBySlugQuery = `*[_type == "post" && slug.current == $slug][0] {
+  _id,
+  title,
+  slug,
+  excerpt,
+  category,
+  tags,
+  publishedAt,
+  _updatedAt,
+  "coverImage": coverImage.asset->url,
+  "coverImageAlt": coalesce(coverImage.alt, coverImage.asset->altText),
+  "mobileCoverImage": mobileCoverImage.asset->url,
+  "mobileCoverImageAlt": coalesce(mobileCoverImage.alt, mobileCoverImage.asset->altText),
+  seo{
+    metaTitle,
+    metaDesc,
+    keywords,
+    "shareImage": shareImage.asset->url,
+    "shareImageAlt": coalesce(shareImage.alt, shareImage.asset->altText)
+  },
+  "author": author->{
+    name
+  }
+}`;
+
+export const relatedPostsQuery = `*[_type == "post" && category == $category && _id != $currentId] | order(publishedAt desc) [0...3] {
+  _id,
+  title,
+  slug,
+  excerpt,
+  category,
+  publishedAt,
+  readingTime,
+  "coverImage": coverImage.asset->url
+}`;
+
+export const sitemapPostsQuery = `*[_type == "post" && defined(slug.current)] | order(publishedAt desc) {
+  "slug": slug.current,
+  _updatedAt,
+  publishedAt
 }`;
 
 export const founderQuery = `*[_type == "teamMember" && isFounder == true][0] {

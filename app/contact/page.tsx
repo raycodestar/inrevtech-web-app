@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { PhoneTextInput } from '@/components/ui/phone-text-input';
 import { GradientText } from '@/components/ui/GradientText';
 import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_ADDRESS } from '@/lib/constants';
 import { siteConfig } from '@/lib/constants';
@@ -225,9 +226,7 @@ export default function ContactPage() {
                       countrySelectProps={{
                         className: 'rounded-l-md border-r-0 bg-transparent w-12',
                       }}
-                      inputProps={{
-                        className: 'flex-1 rounded-r-md bg-transparent text-sm placeholder:text-muted-foreground',
-                      }}
+                      inputComponent={PhoneTextInput}
                     />
                     {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
                   </div>

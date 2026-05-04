@@ -1,3 +1,3 @@
-// sanity/lib/live.ts
-export const sanityFetch = async () => { console.log('Live fetch not configured'); };
-export const SanityLive = () => null;
+// Live content not configured - using standard fetch instead
+// This file is a placeholder for future live content features
+export {};

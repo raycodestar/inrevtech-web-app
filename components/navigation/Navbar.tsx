@@ -15,10 +15,29 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 16);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const previousScrollY = lastScrollYRef.current;
+
+      setScrolled(currentScrollY > 16);
+
+      if (currentScrollY <= 8) {
+        setMobileHeaderVisible(true);
+      } else if (currentScrollY > previousScrollY) {
+        setMobileHeaderVisible(false);
+      } else if (currentScrollY < previousScrollY) {
+        setMobileHeaderVisible(true);
+      }
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -45,6 +64,7 @@ export function Navbar() {
       <header
         className={cn(
           'fixed top-0 left-0 right-0 z-[60] transition-all duration-300',
+          mobileHeaderVisible || mobileOpen ? 'translate-y-0' : '-translate-y-full lg:translate-y-0',
           scrolled
             ? 'border-b border-border bg-background/95 backdrop-blur-md shadow-sm'
             : 'bg-transparent'

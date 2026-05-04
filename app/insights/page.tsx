@@ -16,24 +16,30 @@ interface Post {
   slug: { current: string };
   excerpt: string;
   category: string;
-  tags: string[];
   publishedAt: string;
   readingTime: number;
   featured: boolean;
   coverImage: string;
-  author: {
-    name: string;
-    role: string;
-    avatar: string;
-  };
 }
 
-const categories = ['All', 'Technology', 'Business', 'Design', 'Development', 'Industry Insights'];
+const categories = [
+  { label: 'All', value: 'all' },
+  { label: 'Technology', value: 'technology' },
+  { label: 'Business', value: 'business' },
+  { label: 'Design', value: 'design' },
+  { label: 'Development', value: 'development' },
+  { label: 'Industry Insights', value: 'industry-insights' },
+] as const;
 
-export default function InsightsPage() {
-  const [activeCategory, setActiveCategory] = useState('All');
+function getCategoryLabel(categoryValue?: string) {
+  return categories.find((category) => category.value === categoryValue)?.label || 'General';
+}
+
+export default function BlogPostPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
     async function fetchPosts() {
@@ -49,8 +55,7 @@ export default function InsightsPage() {
     fetchPosts();
   }, []);
 
-  // Safety Check 1: If still loading or no posts exist, show a placeholder
-  // This prevents the "slug" crash during the Vercel build process
+  // Safety Check: If still loading or no posts exist, show a placeholder
   if (loading || !posts || posts.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -64,26 +69,43 @@ export default function InsightsPage() {
   const featured = posts.find(p => p.featured) || posts[0];
   const rest = posts.filter(p => p._id !== featured?._id);
 
+  const postsToFilter = selectedCategory === 'all' ? rest : posts;
+  const filteredPosts = postsToFilter.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || post.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <>
       {/* Hero Section */}
       <section className="relative py-24 sm:py-32 mesh-bg overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="max-w-3xl"
+            className="text-center max-w-3xl mx-auto"
           >
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-4">Insights</p>
-            <h1 className="text-5xl sm:text-6xl font-bold heading-display text-foreground mb-6">
-              Ideas worth{' '}
-              <GradientText>reading</GradientText>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold heading-display text-foreground mb-6 leading-tight">
+              Insights & <GradientText>Expertise</GradientText>
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Expert perspectives on technology, design, AI, and digital strategy —
-              written for builders and founders who want to stay ahead.
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+              Explore our latest thoughts on technology, design, and business strategy. Stay ahead with actionable insights from our team.
             </p>
+            <div className="flex items-center gap-4 justify-center">
+              <div className="relative w-full max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search insights..."
+                  className="pl-10 bg-background border-border"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -110,7 +132,7 @@ export default function InsightsPage() {
               </div>
               <div className="lg:col-span-2 p-8 sm:p-10 flex flex-col justify-center">
                 <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 rounded-full px-3 py-1 mb-4 w-fit">
-                  {featured.category || 'Expertise'}
+                  {getCategoryLabel(featured.category)}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-bold heading-display text-foreground mb-4 group-hover:text-primary transition-colors leading-tight">
                   {featured.title || 'Untitled Article'}
@@ -138,17 +160,17 @@ export default function InsightsPage() {
       <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
+            {categories.map((category) => (
               <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${
-                  activeCategory === cat
-                    ? 'brand-gradient text-white border-transparent shadow-sm'
-                    : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 bg-card'
+                key={category.value}
+                onClick={() => setSelectedCategory(category.value)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === category.value
+                    ? 'bg-primary text-white'
+                    : 'bg-muted text-muted-foreground hover:bg-border'
                 }`}
               >
-                {cat}
+                {category.label}
               </button>
             ))}
           </div>
@@ -159,12 +181,11 @@ export default function InsightsPage() {
       <section className="py-12 pb-24" id="guides">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rest?.map((post, i) => (
+            {filteredPosts?.map((post, i) => (
               <motion.div
                 key={post._id}
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
               >
                 <Link
@@ -177,7 +198,7 @@ export default function InsightsPage() {
                       sizes="(max-width: 640px) 100vw, 33vw"
                     />
                     <div className="absolute top-3 left-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-primary/90 text-white">{post.category || 'General'}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-primary/90 text-white">{getCategoryLabel(post.category)}</span>
                     </div>
                   </div>
                   <div className="flex flex-col flex-1 p-5">
@@ -192,6 +213,12 @@ export default function InsightsPage() {
               </motion.div>
             ))}
           </div>
+          
+          {filteredPosts.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No insights found matching your criteria.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -205,15 +232,18 @@ export default function InsightsPage() {
             Stay in the loop
           </h2>
           <p className="text-base text-muted-foreground mb-8">
-            Get our best insights delivered to your inbox. No spam — just actionable ideas for builders and founders.
+            Get weekly insights on technology, design, and business strategy delivered to your inbox.
           </p>
-          <form className="flex gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
-            <Input type="email" placeholder="your@email.com" className="flex-1" />
-            <Button type="submit" className="brand-gradient border-0 text-white hover:opacity-90 flex-shrink-0">
+          <div className="flex gap-3">
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 bg-background border-border"
+            />
+            <Button className="brand-gradient border-0 text-white hover:opacity-90">
               Subscribe
             </Button>
-          </form>
-          <p className="text-xs text-muted-foreground mt-4">Join 2,000+ readers. Unsubscribe any time.</p>
+          </div>
         </div>
       </section>
     </>
